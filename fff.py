@@ -59,11 +59,18 @@ def generate_text(content, task_type, model_path, max_tokens, stream, eos_token,
     if eos_token is not None:
         tokenizer_config["eos_token"] = eos_token
 
-    model, tokenizer = load(model_path, tokenizer_config=tokenizer_config)
+    model, tokenizer = load(
+        model_path, tokenizer_config=tokenizer_config
+    )
 
     if use_default_chat_template:
         if tokenizer.chat_template is None:
             tokenizer.chat_template = tokenizer.default_chat_template
+
+    if not ignore_chat_template and (
+        hasattr(tokenizer, "apply_chat_template")
+        and tokenizer.chat_template is not None
+    ):
         messages = [{"role": "user", "content": content}]
         prompt = tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
@@ -93,14 +100,6 @@ def generate_text(content, task_type, model_path, max_tokens, stream, eos_token,
             tools=tools,
             tokenize=False,
             add_generation_prompt=True,
-        )
-    elif not ignore_chat_template and (
-        hasattr(tokenizer, "apply_chat_template")
-        and tokenizer.chat_template is not None
-    ):
-        messages = [{"role": "user", "content": content}]
-        prompt = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
         )
     else:
         prompt = f"{task_type} the following:\n{content}"
