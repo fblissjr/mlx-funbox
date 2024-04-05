@@ -102,7 +102,8 @@ def generate_text(content, task_type, model_path, max_tokens, stream, eos_token,
             add_generation_prompt=True,
         )
     else:
-        prompt = f"{task_type} the following:\n{content}"
+        messages = [{"role": "user", "content": content}]
+        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
     formatter = colorprint_by_t0 if colorize else None
 
