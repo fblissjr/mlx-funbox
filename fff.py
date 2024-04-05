@@ -64,8 +64,11 @@ def generate_text(content, task_type, model_path, max_tokens, stream, eos_token,
     if use_default_chat_template:
         if tokenizer.chat_template is None:
             tokenizer.chat_template = tokenizer.default_chat_template
-
-    if use_tools:
+        messages = [{"role": "user", "content": content}]
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+    elif use_tools:
         conversation = [{"role": "user", "content": content}]
         tools = [
             {
