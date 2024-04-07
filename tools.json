@@ -1,0 +1,18 @@
+[
+    {
+        "name": "internet_search",
+        "description": "Returns a list of relevant document snippets for a textual query retrieved from the internet",
+        "parameter_definitions": {
+            "query": {
+                "description": "Query to search the internet with",
+                "type": "str",
+                "required": true
+            }
+        }
+    },
+    {
+        "name": "directly_answer",
+        "description": "Calls a standard (un-augmented) AI chatbot to generate a response given the conversation history",
+        "parameter_definitions": {}
+    }
+]
