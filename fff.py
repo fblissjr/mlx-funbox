@@ -155,7 +155,7 @@ def generate_text(
             add_generation_prompt=True,
         )
 
-    if use_default_chat_template:
+    elif use_default_chat_template:
         if tokenizer.chat_template is None:
             tokenizer.chat_template = tokenizer.default_chat_template
 
