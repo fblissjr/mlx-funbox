@@ -127,7 +127,7 @@ def colorprint_by_t0(s, t0):
 
 def generate_text(
     content,
-    task_type,
+    prompt,
     model_path,
     max_tokens,
     stream,
@@ -150,40 +150,33 @@ def generate_text(
 
     model, tokenizer = load(model_path, tokenizer_config=tokenizer_config)
 
-    if use_default_chat_template:
+    if tools:
+        conversation = [{"role": "user", "content": content}]
+        prompt = tokenizer.apply_tool_use_template(
+            conversation,
+            tools=tools,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+
+    elif use_default_chat_template:
         if tokenizer.chat_template is None:
             tokenizer.chat_template = tokenizer.default_chat_template
 
-    if tools:
-        conversation = [{"role": "user", "content": content}]
-        tools_output = tokenizer.apply_tool_use_template(
-            conversation, tools=tools, tokenize=False, add_generation_prompt=False
+    elif not ignore_chat_template and (
+        hasattr(tokenizer, "apply_chat_template")
+        and tokenizer.chat_template is not None
+    ):
+        messages = [{"role": "user", "content": content}]
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
         )
-        print(tools_output)
-
-        prompt = tokenizer.apply_tool_use_template(
-            conversation, tools=tools, tokenize=False, add_generation_prompt=True
-        )
-
-        if not ignore_chat_template and (
-            hasattr(tokenizer, "apply_chat_template")
-            and tokenizer.chat_template is not None
-        ):
-            messages = [{"role": "user", "content": content}]
-            prompt = tokenizer.apply_chat_template(
-                messages, tokenize=False, add_generation_prompt=True
-            )
-
-        else:
-            messages = [{"role": "user", "content": content}]
-            prompt = tokenizer.apply_chat_template(
-                messages, tokenize=False, add_generation_prompt=True
-            )
 
     else:
-        prompt = content
-
-    print(prompt)
+        messages = [{"role": "user", "content": content}]
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
 
     formatter = colorprint_by_t0 if colorize else None
 
