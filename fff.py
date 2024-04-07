@@ -150,20 +150,11 @@ def generate_text(
 
     model, tokenizer = load(model_path, tokenizer_config=tokenizer_config)
 
-    if tools:
-        conversation = [{"role": "user", "content": content}]
-        prompt = tokenizer.apply_tool_use_template(
-            conversation,
-            tools=tools,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
-
-    elif use_default_chat_template:
+    if use_default_chat_template:
         if tokenizer.chat_template is None:
             tokenizer.chat_template = tokenizer.default_chat_template
 
-    elif not ignore_chat_template and (
+    if not ignore_chat_template and (
         hasattr(tokenizer, "apply_chat_template")
         and tokenizer.chat_template is not None
     ):
@@ -171,7 +162,16 @@ def generate_text(
         prompt = tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-
+        
+    elif tools:
+        conversation = [{"role": "user", "content": content}]
+        prompt = tokenizer.apply_tool_use_template(
+            conversation,
+            tools=tools,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+        
     else:
         messages = [{"role": "user", "content": content}]
         prompt = tokenizer.apply_chat_template(
