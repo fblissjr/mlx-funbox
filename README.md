@@ -3,7 +3,7 @@ mlx and mlx-lm CLI toolbox for my own personal use, and maybe yours too. primary
 
 ## updates
 - Tool use now works. See tools.json to define your tools. You can run this by piping in your content and passing in the json object of tools available.
-- example: ```cat obsidian_journal.md | python fff.py "Tell me whats super hysterical about this journal entry" -m /Users/fredbliss/mlx/Storage/cohere_c4ai-command-r-plus-mlx-4bit-128g --use-tools tools.json```
+- example: ```cat long_article.md | python fff.py "Tell me what's super funny about this" -m /Users/fredbliss/mlx/Storage/cohere_c4ai-command-r-plus-mlx-4bit-128g --use-tools tools.json```
 
 ## why is the cli app called fff.py?
 because when i was creating it, i typed ```nano f``` and the key repeat rate was set too high, and i decided ¯\_(ツ)_/¯ 
