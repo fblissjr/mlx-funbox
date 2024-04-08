@@ -158,7 +158,7 @@ def generate_text(
         prompt = tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-    elif tools:
+    if tools:
         conversation = [{"role": "user", "content": prompt}]
         prompt = tokenizer.apply_tool_use_template(
             conversation,
