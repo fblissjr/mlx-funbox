@@ -2,7 +2,6 @@ import sys
 import click
 from mlx_lm import load, generate
 import mlx.core as mx
-import json
 from tool_utils import load_tools_from_file
 
 DEFAULT_TEMP = 0.5
@@ -11,11 +10,6 @@ DEFAULT_SEED = 0
 
 
 @click.command()
-@click.argument(
-    "prompt",
-    required=True,
-    default="Summarize the following content:\n",
-)
 @click.option(
     "-m",
     "--model",
@@ -55,14 +49,13 @@ DEFAULT_SEED = 0
     default=False,
     help="Colorize output based on T[0] probability",
 )
-# example: cat prompt.txt | python fff.py --model ./mlx-community_c4ai-command-r-plus-4bit --use-tools tools.json
 @click.option(
     "--use-tools",
     type=click.Path(exists=True),
     help="Enable tool use capabilities and specify the path to the JSON file containing tool definitions",
 )
+@click.argument("prompt", required=False)
 def cli(
-    prompt,
     model,
     max_tokens,
     stream,
@@ -75,13 +68,17 @@ def cli(
     use_default_chat_template,
     colorize,
     use_tools,
+    prompt,
 ):
-    content = prompt + sys.stdin.read() if not sys.stdin.isatty() else prompt
     tools = []
+
+    if not sys.stdin.isatty():
+        prompt = prompt + sys.stdin.read() if prompt else sys.stdin.read()
+
     if use_tools:
         tools = load_tools_from_file(use_tools)
+
     generate_text(
-        content,
         prompt,
         model,
         max_tokens,
@@ -126,7 +123,6 @@ def colorprint_by_t0(s, t0):
 
 
 def generate_text(
-    content,
     prompt,
     model_path,
     max_tokens,
@@ -158,24 +154,17 @@ def generate_text(
         hasattr(tokenizer, "apply_chat_template")
         and tokenizer.chat_template is not None
     ):
-        messages = [{"role": "user", "content": content}]
+        messages = [{"role": "user", "content": prompt}]
         prompt = tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-        
     elif tools:
-        conversation = [{"role": "user", "content": content}]
+        conversation = [{"role": "user", "content": prompt}]
         prompt = tokenizer.apply_tool_use_template(
             conversation,
             tools=tools,
             tokenize=False,
             add_generation_prompt=True,
-        )
-        
-    else:
-        messages = [{"role": "user", "content": content}]
-        prompt = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
         )
 
     formatter = colorprint_by_t0 if colorize else None
