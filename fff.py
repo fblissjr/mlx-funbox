@@ -49,12 +49,6 @@ DEFAULT_SEED = 0
     help="Enable tool use capabilities and specify the path to the JSON file containing tool definitions",
 )
 @click.option(
-    "--colorize",
-    is_flag=True,
-    default=False,
-    help="Colorize output based on T[0] probability",
-)
-@click.option(
     "--debug",
     is_flag=True,
     default=False,
@@ -74,7 +68,6 @@ def cli(
     use_default_chat_template,
     use_tools,
     prompt,
-    colorize,
     debug,
 ):
     tools = []
@@ -100,7 +93,6 @@ def cli(
         ignore_chat_template,
         use_default_chat_template,
         tools,
-        colorize,
         debug,
         piped_content,
     )
@@ -119,7 +111,6 @@ def generate_text(
     ignore_chat_template,
     use_default_chat_template,
     tools,
-    colorize,
     debug,
     piped_content,
 ):
@@ -160,7 +151,8 @@ def generate_text(
         print("Piped content:", piped_content)
         print("Tools:", tools)
 
-    formatter = colorprint_by_t0 if colorize else None
+    # tbd
+    formatter = None
 
     response = generate(
         model,
