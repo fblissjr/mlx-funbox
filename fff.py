@@ -44,15 +44,21 @@ DEFAULT_SEED = 0
     help="Use the default chat template",
 )
 @click.option(
+    "--use-tools",
+    type=click.Path(exists=True),
+    help="Enable tool use capabilities and specify the path to the JSON file containing tool definitions",
+)
+@click.option(
     "--colorize",
     is_flag=True,
     default=False,
     help="Colorize output based on T[0] probability",
 )
 @click.option(
-    "--use-tools",
-    type=click.Path(exists=True),
-    help="Enable tool use capabilities and specify the path to the JSON file containing tool definitions",
+    "--debug",
+    is_flag=True,
+    default=False,
+    help="Enable debug mode to print additional information",
 )
 @click.argument("prompt", required=False)
 def cli(
@@ -66,14 +72,17 @@ def cli(
     seed,
     ignore_chat_template,
     use_default_chat_template,
-    colorize,
     use_tools,
     prompt,
+    colorize,
+    debug,
 ):
     tools = []
+    piped_content = None
 
     if not sys.stdin.isatty():
-        prompt = prompt + sys.stdin.read() if prompt else sys.stdin.read()
+        piped_content = sys.stdin.read()
+        prompt = prompt + piped_content if prompt else piped_content
 
     if use_tools:
         tools = load_tools_from_file(use_tools)
@@ -90,36 +99,11 @@ def cli(
         seed,
         ignore_chat_template,
         use_default_chat_template,
-        colorize,
         tools,
+        colorize,
+        debug,
+        piped_content,
     )
-
-
-def colorprint(color, s):
-    color_codes = {
-        "black": 30,
-        "red": 31,
-        "green": 32,
-        "yellow": 33,
-        "blue": 34,
-        "magenta": 35,
-        "cyan": 36,
-        "white": 39,
-    }
-    ccode = color_codes.get(color, 30)
-    print(f"\033[1m\033[{ccode}m{s}\033[0m", end="", flush=True)
-
-
-def colorprint_by_t0(s, t0):
-    if t0 > 0.95:
-        color = "white"
-    elif t0 > 0.70:
-        color = "green"
-    elif t0 > 0.30:
-        color = "yellow"
-    else:
-        color = "red"
-    colorprint(color, s)
 
 
 def generate_text(
@@ -134,8 +118,10 @@ def generate_text(
     seed,
     ignore_chat_template,
     use_default_chat_template,
-    colorize,
     tools,
+    colorize,
+    debug,
+    piped_content,
 ):
     mx.random.seed(seed)
 
@@ -150,14 +136,6 @@ def generate_text(
         if tokenizer.chat_template is None:
             tokenizer.chat_template = tokenizer.default_chat_template
 
-    if not ignore_chat_template and (
-        hasattr(tokenizer, "apply_chat_template")
-        and tokenizer.chat_template is not None
-    ):
-        messages = [{"role": "user", "content": prompt}]
-        prompt = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
     if tools:
         conversation = [{"role": "user", "content": prompt}]
         prompt = tokenizer.apply_tool_use_template(
@@ -166,6 +144,21 @@ def generate_text(
             tokenize=False,
             add_generation_prompt=True,
         )
+
+    if not ignore_chat_template and (
+        hasattr(tokenizer, "apply_chat_template")
+        and tokenizer.chat_template is not None
+    ):
+        messages = [{"role": "user", "content": prompt}]
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+
+    if debug:
+        print("Debug information:")
+        print("Prompt:", prompt)
+        print("Piped content:", piped_content)
+        print("Tools:", tools)
 
     formatter = colorprint_by_t0 if colorize else None
 
