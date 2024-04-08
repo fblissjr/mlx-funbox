@@ -2,6 +2,7 @@
 mlx and mlx-lm CLI toolbox for my own personal use, and maybe yours too. primary built to test out [cohere's command-r plus model](https://docs.cohere.com/docs/command-r-plus) using mlx + cohere's open weights release on [hugging face](https://huggingface.co/CohereForAI/c4ai-command-r-plus). quantized weights are available on the mlx-community org on hugging face [here](https://huggingface.co/mlx-community/c4ai-command-r-plus-4bit)
 
 ## updates
+- Issue with cohere command r plus tokenizer.json in converted mlx models. At least for now, copy the tokenizer.json from Cohere's HF repo (https://huggingface.co/CohereForAI/c4ai-command-r-plus/blob/main/tokenizer.json) to your mlx converted model folder. Unsure if this fixes everything, but it removes strange multilingual tokens popping up. See issue log here for updates: https://github.com/ml-explore/mlx-examples/issues/660
 - Tool use now works. See tools.json to define your tools. You can run this by piping in your content and passing in the json object of tools available.
 - example: ```cat long_article.md | python fff.py "Tell me what's super funny about this" -m /Users/fredbliss/mlx/Storage/cohere_c4ai-command-r-plus-mlx-4bit-128g --use-tools tools.json```
 
